@@ -52,11 +52,9 @@ ARPGSurvivalCharacter::ARPGSurvivalCharacter()
 
 void ARPGSurvivalCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
-	// Set up gameplay key bindings
-	check(PlayerInputComponent);
-	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+	PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 
+	// Movement
 	PlayerInputComponent->BindAxis("MoveForward", this, &ARPGSurvivalCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ARPGSurvivalCharacter::MoveRight);
 
@@ -67,29 +65,6 @@ void ARPGSurvivalCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAxis("TurnRate", this, &ARPGSurvivalCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ARPGSurvivalCharacter::LookUpAtRate);
-
-	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &ARPGSurvivalCharacter::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &ARPGSurvivalCharacter::TouchStopped);
-
-	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ARPGSurvivalCharacter::OnResetVR);
-}
-
-
-void ARPGSurvivalCharacter::OnResetVR()
-{
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
-void ARPGSurvivalCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		Jump();
-}
-
-void ARPGSurvivalCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		StopJumping();
 }
 
 void ARPGSurvivalCharacter::TurnAtRate(float Rate)
