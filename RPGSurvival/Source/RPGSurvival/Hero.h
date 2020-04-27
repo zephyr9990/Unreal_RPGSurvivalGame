@@ -37,6 +37,7 @@ public:
 	float BaseLookUpRate;
 
 protected:
+
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);
 
@@ -80,5 +81,10 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	/** Returns Box subobject **/
 	FORCEINLINE class USphereComponent* GetEnemyDetectionSphere() const { return EnemyDetectionSphere; }
+
+private:									   
+	virtual void Tick(float DeltaTime) override;
+
+	bool bInBattle;
 };
 

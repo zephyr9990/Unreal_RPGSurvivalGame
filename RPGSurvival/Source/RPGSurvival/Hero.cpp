@@ -54,6 +54,10 @@ AHero::AHero()
 
 	EnemyDetectionSphere->OnComponentBeginOverlap.AddDynamic(this, &AHero::OnOverlapBegin);
 	EnemyDetectionSphere->OnComponentEndOverlap.AddDynamic(this, &AHero::OnOverlapEnd);
+
+	// Initialize class variables
+	bInBattle = false;
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -77,6 +81,18 @@ void AHero::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponen
 	PlayerInputComponent->BindAxis("TurnRate", this, &AHero::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AHero::LookUpAtRate);
+}
+
+void AHero::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+
+	if (bInBattle)
+	{
+		TArray<AActor*> Enemies;
+		EnemyDetectionSphere->GetOverlappingActors(Enemies, TSubclassOf<AEnemyCharacter>());
+	}
 }
 
 void AHero::TurnAtRate(float Rate)
@@ -125,7 +141,7 @@ void AHero::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherAct
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(OtherActor);
 	if (Enemy)
 	{
-		Enemy->ShowInformation(true);
+		bInBattle = true;
 	}
 }
 
