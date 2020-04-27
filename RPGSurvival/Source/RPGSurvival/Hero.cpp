@@ -4,7 +4,7 @@
 #include "EnemyCharacter.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
-#include "Components/BoxComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
@@ -45,17 +45,15 @@ AHero::AHero()
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
 	// Create the detection box
-	FVector DefaultDetectionBoxSize = FVector(500.0f, 0.0f, 0.0f);
-	FVector DefaultBoxExtent = FVector(500.0f, 32.0f, 500.0f);
-	EnemyDetectionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("EnemyDetectionBox"));
-	EnemyDetectionBox->SetCollisionProfileName(FName("Trigger"));
-	EnemyDetectionBox->SetupAttachment(GetCapsuleComponent());
-	EnemyDetectionBox->SetRelativeLocation(DefaultDetectionBoxSize);
-	EnemyDetectionBox->SetBoxExtent(DefaultBoxExtent);
+	FVector DefaultDetectionSphereSize = FVector(0.0f, 0.0f, 0.0f);
+	float DefaultDetectionSphereRadius = 1000.0f;
+	EnemyDetectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("EnemyDetectionSphere"));
+	EnemyDetectionSphere->SetupAttachment(GetCapsuleComponent());
+	EnemyDetectionSphere->SetRelativeLocation(DefaultDetectionSphereSize);
+	EnemyDetectionSphere->SetSphereRadius(DefaultDetectionSphereRadius);
 
-	EnemyDetectionBox->OnComponentBeginOverlap.AddDynamic(this, &AHero::OverlapBegin);
-	EnemyDetectionBox->OnComponentEndOverlap.AddDynamic(this, &AHero::OverlapEnd);
-
+	EnemyDetectionSphere->OnComponentBeginOverlap.AddDynamic(this, &AHero::OnOverlapBegin);
+	EnemyDetectionSphere->OnComponentEndOverlap.AddDynamic(this, &AHero::OnOverlapEnd);
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -122,11 +120,8 @@ void AHero::MoveRight(float Value)
 	}
 }
 
-void AHero::OverlapBegin_Implementation(UPrimitiveComponent* HitComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
-	bool bFromSweep, const FHitResult& SweepResult)
+void AHero::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Beginning overlap"));
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(OtherActor);
 	if (Enemy)
 	{
@@ -134,8 +129,9 @@ void AHero::OverlapBegin_Implementation(UPrimitiveComponent* HitComp, AActor* Ot
 	}
 }
 
-void AHero::OverlapEnd_Implementation(UPrimitiveComponent* HitComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+
+
+void AHero::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Ending overlap"));
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(OtherActor);

@@ -7,7 +7,7 @@
 #include "Hero.generated.h"
 
 // Forward Declaration
-class UBoxComponent;
+class USphereComponent;
 
 UCLASS(config=Game)
 class AHero : public ACharacter
@@ -24,7 +24,7 @@ class AHero : public ACharacter
 
 	/** The box that detects if enemies are in front of this character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Collision, meta = (AllowPrivateAccess = "true"))
-	class UBoxComponent* EnemyDetectionBox;
+	class USphereComponent* EnemyDetectionSphere;
 public:
 	AHero();
 
@@ -58,15 +58,15 @@ protected:
 	/**
 	* Detects overlap events
 	*/
-	UFUNCTION(BlueprintNativeEvent, Category = "Collision")
-		void OverlapBegin(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	UFUNCTION()
+		void OnOverlapBegin(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 			int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	/**
 	* Detects end overlap events 
 	*/
-	UFUNCTION(BlueprintNativeEvent, Category = "Collision")
-		void OverlapEnd(UPrimitiveComponent* HitComp, AActor* OtherActor,
+	UFUNCTION()
+		void OnOverlapEnd(UPrimitiveComponent* HitComp, AActor* OtherActor,
 			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 protected:
 	// APawn interface
@@ -79,6 +79,6 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	/** Returns Box subobject **/
-	FORCEINLINE class UBoxComponent* GetEnemyDetectionBox() const { return EnemyDetectionBox; }
+	FORCEINLINE class USphereComponent* GetEnemyDetectionSphere() const { return EnemyDetectionSphere; }
 };
 
