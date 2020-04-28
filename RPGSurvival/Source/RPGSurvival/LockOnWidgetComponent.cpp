@@ -5,5 +5,11 @@
 
 void ULockOnWidgetComponent::ShowInformation(bool Show)
 {
+	// Widget is already off/on. Do nothing.
+	if (Show == IsVisible())
+	{
+		return;
+	}
+
 	SetVisibility(Show);
 }

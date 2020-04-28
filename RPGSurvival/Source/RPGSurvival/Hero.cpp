@@ -2,6 +2,7 @@
 
 #include "Hero.h"
 #include "EnemyCharacter.h"
+#include "Engine/World.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
@@ -9,6 +10,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Math/Vector.h"
+#include "Kismet/KismetMathLibrary.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AHero
@@ -62,6 +65,12 @@ AHero::AHero()
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
 
+void AHero::BeginPlay()
+{
+	Super::BeginPlay();
+
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -92,6 +101,12 @@ void AHero::Tick(float DeltaTime)
 	{
 		TArray<AActor*> Enemies;
 		EnemyDetectionSphere->GetOverlappingActors(Enemies, TSubclassOf<AEnemyCharacter>());
+		AEnemyCharacter* ClosestEnemyInFront = FindClosestEnemyInFront(Enemies);
+
+		if (ClosestEnemyInFront)
+		{
+			ClosestEnemyInFront->ShowInformation(true);
+		}
 	}
 }
 
@@ -134,6 +149,66 @@ void AHero::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+}
+
+AEnemyCharacter* AHero::FindClosestEnemyInFront(TArray<AActor*>& Enemies)
+{
+	AEnemyCharacter* ClosestEnemy = nullptr;
+	for (AActor* EnemyInRange : Enemies)
+	{
+		AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(EnemyInRange);
+		if (Enemy)
+		{
+			Enemy->ShowInformation(false);
+			if (IsInFront(Enemy))
+			{
+				ClosestEnemy = FindClosestEnemyBetween(ClosestEnemy, Enemy);
+			}
+		}
+	}
+	return ClosestEnemy;
+}
+
+AEnemyCharacter* AHero::FindClosestEnemyBetween(AEnemyCharacter* ClosestEnemy, AEnemyCharacter* Enemy)
+{
+	AEnemyCharacter* NewClosestEnemy = nullptr;
+	if (ClosestEnemy)
+	{
+		FVector ToEnemy = GetVectorTo(Enemy);
+		FVector ToClosestEnemy = GetVectorTo(ClosestEnemy);
+		if (ToEnemy.Size() < ToClosestEnemy.Size())
+		{
+			NewClosestEnemy = Enemy;
+		}
+		else
+		{
+			NewClosestEnemy = ClosestEnemy;
+		}
+	}
+	else
+	{
+		NewClosestEnemy = Enemy;
+	}
+
+	return NewClosestEnemy;
+}
+
+bool AHero::IsInFront(AEnemyCharacter* Enemy)
+{
+	FVector ToEnemy = GetVectorTo(Enemy);
+	ToEnemy.Normalize();
+
+	FVector ActorForward = GetActorForwardVector();
+	float AngleToEnemy = UKismetMathLibrary::DegAcos(FVector::DotProduct(ActorForward, ToEnemy));
+
+	return AngleToEnemy < 90.0f;
+}
+
+
+
+FVector AHero::GetVectorTo(AEnemyCharacter* Enemy)
+{
+	return Enemy->GetTransform().GetLocation() - GetTransform().GetLocation();
 }
 
 void AHero::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)

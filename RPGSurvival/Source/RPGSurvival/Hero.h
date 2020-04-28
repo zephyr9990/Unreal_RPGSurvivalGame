@@ -8,6 +8,8 @@
 
 // Forward Declaration
 class USphereComponent;
+class AEnemyCharacter;
+class APlayerController;
 
 UCLASS(config=Game)
 class AHero : public ACharacter
@@ -83,8 +85,37 @@ public:
 	FORCEINLINE class USphereComponent* GetEnemyDetectionSphere() const { return EnemyDetectionSphere; }
 
 private:									   
+	/** Called once game is started **/
+	virtual void BeginPlay() override;
+	
+	/** Called every frame **/
 	virtual void Tick(float DeltaTime) override;
 
+	/** Finds the closest enemy infront of the player 
+	* @param Enemies - The array of enemies to iterate through
+	*/
+	AEnemyCharacter* FindClosestEnemyInFront(TArray<AActor*>& Enemies);
+
+	/** Compares the distance between ClosestEnemy and Enemy, and returns the closest enemy to the player.
+	* @param ClosestEnemy - The current closest enemy.
+	* @param Enemy - The enemy to check against.
+	* @return The enemy closest between the two.
+	*/
+	AEnemyCharacter* FindClosestEnemyBetween(AEnemyCharacter* ClosestEnemy, AEnemyCharacter* Enemy);
+
+	/** Gets the vector to the given enemy 
+	* @param Enemy - The enemy to calculate a vector to.
+	* @return A vector towards the enemy
+	*/
+	FVector GetVectorTo(AEnemyCharacter* Enemy);
+
+	/** Checks to see if the given enemy is infront of the player 
+	* @param ToEnemy - The enemy to get the vector to.
+	* @return true if enemy is infront and false if not.
+	*/
+	bool IsInFront(AEnemyCharacter* Enemy);
+
+	// Used to see if the character is in battle.
 	bool bInBattle;
 };
 
