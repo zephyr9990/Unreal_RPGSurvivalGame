@@ -158,6 +158,9 @@ private:
 	/** Adjusts the camera boom so that the player stays in view. */
 	void AdjustCameraBoomToSeePlayerAndEnemy(float DeltaTime);
 
+	/** Switches lock on target to new target. */
+	void SwitchTargetTo(AEnemyCharacter* NewTarget);
+
 	// Used to see if the character is in battle.
 	bool bInBattle;
 

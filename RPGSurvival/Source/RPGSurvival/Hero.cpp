@@ -195,11 +195,7 @@ void AHero::TargetLeftEnemy()
 		AEnemyCharacter* NewTarget = FindClosestEnemyToTheLeftOfTarget();
 		if (NewTarget)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("New Target: %s"), *NewTarget->GetName())
-			LockOnTarget->ShowInformation(false);
-			LockOnTarget = NewTarget;
-			LockOnTarget->ShowInformation(true);
-			LockOnTarget->ToggleLockOn();
+			SwitchTargetTo(NewTarget);
 		}
 	}
 
@@ -212,11 +208,7 @@ void AHero::TargetRightEnemy()
 		AEnemyCharacter* NewTarget = FindClosestEnemyToTheRightOfTarget();
 		if (NewTarget)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("New Target: %s"), *NewTarget->GetName())
-			LockOnTarget->ShowInformation(false);
-			LockOnTarget = NewTarget;
-			LockOnTarget->ShowInformation(true);
-			LockOnTarget->ToggleLockOn();
+			SwitchTargetTo(NewTarget);
 		}
 	}
 }
@@ -339,6 +331,14 @@ void AHero::AdjustCameraBoomToSeePlayerAndEnemy(float DeltaTime)
 	}
 }
 
+void AHero::SwitchTargetTo(AEnemyCharacter* NewTarget)
+{
+	LockOnTarget->ShowInformation(false);
+	LockOnTarget = NewTarget;
+	LockOnTarget->ShowInformation(true);
+	LockOnTarget->ToggleLockOn();
+}
+
 AEnemyCharacter* AHero::FindClosestEnemyInFront(TArray<AActor*>& Enemies)
 {
 	AEnemyCharacter* ClosestEnemy = nullptr;
@@ -384,8 +384,6 @@ AEnemyCharacter* AHero::FindClosestEnemyBetween(AEnemyCharacter* ClosestEnemy, A
 bool AHero::IsInFront(AEnemyCharacter* Enemy)
 {
 	float AngleToEnemy = GetAngleTo(Enemy, GetActorForwardVector());
-	UE_LOG(LogTemp, Warning, TEXT("%f"), AngleToEnemy)
-
 	return AngleToEnemy < 90.0f && AngleToEnemy > -90.0f;
 }
 
@@ -435,7 +433,7 @@ void AHero::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherAct
 void AHero::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(OtherActor);
-	if (Enemy)
+	if (Enemy && Enemy != LockOnTarget)
 	{
 		Enemy->ShowInformation(false);
 	}
@@ -450,6 +448,7 @@ void AHero::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor
 	{
 		if (bIsLockedOntoEnemy && ClosestEnemyInFront) 
 		{
+			LockOnTarget->ShowInformation(false);
 			ToggleLockOn();
 			bInBattle = false;
 		}
