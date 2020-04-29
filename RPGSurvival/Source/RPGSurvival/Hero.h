@@ -92,6 +92,14 @@ protected:
 	// End of APawn interface
 
 public:
+	/** Tells blueprint to start combat animations */
+	UFUNCTION(BlueprintImplementableEvent)
+	void EnterCombatMode(bool bInCombat);
+
+	/** Sets whether or not the player can move */
+	UFUNCTION(BlueprintCallable)
+		void EnableMovement(bool bCanMove);
+
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
@@ -161,11 +169,19 @@ private:
 	/** Switches lock on target to new target. */
 	void SwitchTargetTo(AEnemyCharacter* NewTarget);
 
-	// Used to see if the character is in battle.
-	bool bInBattle;
+	/** Sets whether or not the player is in combat 
+	* @param bInCombat - the value for whether player is in combat or not. 
+	*/
+	void SetIsInCombat(bool bInCombat);
+
+	// Used to see if the character is in combat.
+	bool bIsInCombat;
 
 	// Used to see if the character is locked onto an enemy.
 	bool bIsLockedOntoEnemy;
+
+	// Used to see if the player can move.
+	bool bMovementEnabled;
 
 	// Used to track which enemy is the closest and infront of the player
 	AEnemyCharacter* ClosestEnemyInFront;

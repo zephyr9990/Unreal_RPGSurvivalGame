@@ -60,11 +60,11 @@ AHero::AHero()
 	EnemyDetectionSphere->OnComponentEndOverlap.AddDynamic(this, &AHero::OnOverlapEnd);
 
 	// Initialize class variables
-	bInBattle = false;
+	bIsInCombat = false;
 	bIsLockedOntoEnemy = false;
+	bMovementEnabled = true;
 	ClosestEnemyInFront = nullptr;
 	LockOnTarget = nullptr;
-
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -103,8 +103,7 @@ void AHero::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-
-	if (bInBattle && !bIsLockedOntoEnemy)
+	if (bIsInCombat && !bIsLockedOntoEnemy)
 	{
 		TArray<AActor*> Enemies;
 		EnemyDetectionSphere->GetOverlappingActors(Enemies, TSubclassOf<AEnemyCharacter>());
@@ -127,6 +126,11 @@ void AHero::Tick(float DeltaTime)
 	}
 }
 
+void AHero::EnableMovement(bool bCanMove)
+{
+	bMovementEnabled = bCanMove;
+}
+
 void AHero::TurnAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
@@ -141,7 +145,7 @@ void AHero::LookUpAtRate(float Rate)
 
 void AHero::MoveForward(float Value)
 {
-	if ((Controller != NULL) && (Value != 0.0f))
+	if ((Controller != NULL) && (Value != 0.0f) && bMovementEnabled)
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -155,7 +159,7 @@ void AHero::MoveForward(float Value)
 
 void AHero::MoveRight(float Value)
 {
-	if ( (Controller != NULL) && (Value != 0.0f) )
+	if ( (Controller != NULL) && (Value != 0.0f) && bMovementEnabled )
 	{
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -170,7 +174,7 @@ void AHero::MoveRight(float Value)
 
 void AHero::ToggleLockOn()
 {
-	if (ClosestEnemyInFront && bInBattle)
+	if (ClosestEnemyInFront && bIsInCombat)
 	{
 		LockOnTarget = ClosestEnemyInFront;
 		CameraBoom->bUsePawnControlRotation = false;
@@ -283,7 +287,7 @@ void AHero::TrackLockedOnEnemy(float DeltaTime)
 	{
 		FVector ToMidPoint = GetVectorTo(LockOnTarget);
 		FVector LocationOfMidPoint = GetActorLocation() + ToMidPoint / 2;
-		FRotator ToEnemyRotation = UKismetMathLibrary::FindLookAtRotation(FollowCamera->GetComponentLocation(), LocationOfMidPoint);
+		FRotator ToEnemyRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LocationOfMidPoint);
 		FRotator ToEnemyRotationLerpValue = UKismetMathLibrary::RLerp(FollowCamera->GetComponentRotation(), ToEnemyRotation, DeltaTime * 2, true);
 		FollowCamera->SetWorldRotation(ToEnemyRotationLerpValue);
 		Controller->SetControlRotation(ToEnemyRotationLerpValue);
@@ -420,13 +424,19 @@ float AHero::GetAngleTo(AEnemyCharacter* Enemy, FVector ForwardDirection)
 	return AngleToEnemy;
 }
 
+void AHero::SetIsInCombat(bool bInCombat)
+{
+	bIsInCombat = bInCombat;
+	EnterCombatMode(bInCombat);
+	UE_LOG(LogTemp, Warning, TEXT("Mode: %i"), bIsInCombat)
+}
 
 void AHero::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(OtherActor);
 	if (Enemy)
 	{
-		bInBattle = true;
+		SetIsInCombat(true);
 	}
 }
 
@@ -443,14 +453,13 @@ void AHero::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor
 	EnemyDetectionSphere->GetOverlappingActors(EnemiesInRange, TSubclassOf<AEnemyCharacter>());
 
 	// The player is fleeing from battle. Stop battle mode and disengage lock on.
-
 	if (EnemiesInRange.Num() == 1)
 	{
 		if (bIsLockedOntoEnemy && ClosestEnemyInFront) 
 		{
 			LockOnTarget->ShowInformation(false);
 			ToggleLockOn();
-			bInBattle = false;
 		}
+		SetIsInCombat(false);
 	}
 }
