@@ -64,6 +64,16 @@ protected:
 	void ToggleLockOn();
 
 	/**
+	* Switches lock on target to the enemy left of the currently locked on target.
+	*/
+	void TargetLeftEnemy();
+
+	/**
+	* Switches lock on target to the enemy right of the currently locked on target.
+	*/
+	void TargetRightEnemy();
+
+	/**
 	* Detects overlap events
 	*/
 	UFUNCTION()
@@ -108,11 +118,30 @@ private:
 	*/
 	AEnemyCharacter* FindClosestEnemyBetween(AEnemyCharacter* ClosestEnemy, AEnemyCharacter* Enemy);
 
+	/** Find the closest enemy to the left 
+	* @param Target - The currently locked on target.
+	* @return - The enemy to the left of the target.
+	*/
+	AEnemyCharacter* FindClosestEnemyToTheLeftOfTarget();
+
+	/** Find the closest enemy to the right
+	* @param Target - The currently locked on target.
+	* @return - The enemy to the right of the target.
+	*/
+	AEnemyCharacter* FindClosestEnemyToTheRightOfTarget();
+
 	/** Gets the vector to the given enemy 
 	* @param Enemy - The enemy to calculate a vector to.
 	* @return A vector towards the enemy
 	*/
 	FVector GetVectorTo(AEnemyCharacter* Enemy);
+
+	/** Gets the angle to the enemy from the player's forward facing direction. 
+	* @param Enemy - The enemy to calculate the angle for.
+	* @param ForwardDirection - The direction acting as 0.
+	* @return The angle towards the enemy.
+	*/
+	float GetAngleTo(AEnemyCharacter* Enemy, FVector ForwardDirection);
 
 	/** Checks to see if the given enemy is infront of the player 
 	* @param ToEnemy - The enemy to get the vector to.
@@ -137,5 +166,8 @@ private:
 
 	// Used to track which enemy is the closest and infront of the player
 	AEnemyCharacter* ClosestEnemyInFront;
+
+	// Used to track the lock on target.
+	AEnemyCharacter* LockOnTarget;
 };
 

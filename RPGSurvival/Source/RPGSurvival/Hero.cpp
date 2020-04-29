@@ -62,6 +62,8 @@ AHero::AHero()
 	// Initialize class variables
 	bInBattle = false;
 	bIsLockedOntoEnemy = false;
+	ClosestEnemyInFront = nullptr;
+	LockOnTarget = nullptr;
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -81,6 +83,8 @@ void AHero::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponen
 	// Actions
 	PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("LockOn", EInputEvent::IE_Pressed, this, &AHero::ToggleLockOn);
+	PlayerInputComponent->BindAction("TargetLeftEnemy", EInputEvent::IE_Pressed, this, &AHero::TargetLeftEnemy);
+	PlayerInputComponent->BindAction("TargetRightEnemy", EInputEvent::IE_Pressed, this, &AHero::TargetRightEnemy);
 
 	// Cardinal Movement
 	PlayerInputComponent->BindAxis("MoveForward", this, &AHero::MoveForward);
@@ -168,29 +172,130 @@ void AHero::ToggleLockOn()
 {
 	if (ClosestEnemyInFront && bInBattle)
 	{
+		LockOnTarget = ClosestEnemyInFront;
 		CameraBoom->bUsePawnControlRotation = false;
 
 		bIsLockedOntoEnemy = !bIsLockedOntoEnemy;
-		ClosestEnemyInFront->ToggleLockOn();
+		LockOnTarget->ToggleLockOn();
 	}
 
 	if (!bIsLockedOntoEnemy)
 	{
+		LockOnTarget = nullptr;
 		CameraBoom->bUsePawnControlRotation = true;
 
 		FollowCamera->SetRelativeRotation(FQuat(FRotator::ZeroRotator));
-		CameraBoom->SetWorldRotation(FQuat(FRotator::ZeroRotator));
 	}
+}
+
+void AHero::TargetLeftEnemy()
+{
+	if (LockOnTarget)
+	{
+		AEnemyCharacter* NewTarget = FindClosestEnemyToTheLeftOfTarget();
+		if (NewTarget)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("New Target: %s"), *NewTarget->GetName())
+			LockOnTarget->ShowInformation(false);
+			LockOnTarget = NewTarget;
+			LockOnTarget->ShowInformation(true);
+			LockOnTarget->ToggleLockOn();
+		}
+	}
+
+}
+
+void AHero::TargetRightEnemy()
+{
+	if (LockOnTarget)
+	{
+		AEnemyCharacter* NewTarget = FindClosestEnemyToTheRightOfTarget();
+		if (NewTarget)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("New Target: %s"), *NewTarget->GetName())
+			LockOnTarget->ShowInformation(false);
+			LockOnTarget = NewTarget;
+			LockOnTarget->ShowInformation(true);
+			LockOnTarget->ToggleLockOn();
+		}
+	}
+}
+
+AEnemyCharacter* AHero::FindClosestEnemyToTheLeftOfTarget()
+{
+	TArray<AActor*> EnemiesInRange;
+	EnemyDetectionSphere->GetOverlappingActors(EnemiesInRange, AEnemyCharacter::StaticClass());
+
+	AEnemyCharacter* ClosestTargetToTheLeft = nullptr;
+	for (AActor* EnemyInRange : EnemiesInRange)
+	{
+		AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(EnemyInRange);
+		if (Enemy && LockOnTarget && Enemy != LockOnTarget)
+		{
+			FVector ToLockOnTarget = GetVectorTo(LockOnTarget);
+			float AngleToEnemy = GetAngleTo(Enemy, ToLockOnTarget);
+			// Compare angles with the closest target left of the enemy
+			if (AngleToEnemy < 0 && ClosestTargetToTheLeft)
+			{
+				float AngleToClosestLeftTarget = GetAngleTo(ClosestTargetToTheLeft, ToLockOnTarget);
+				if (AngleToEnemy > AngleToClosestLeftTarget)
+				{
+					ClosestTargetToTheLeft = Enemy;
+				}
+			}
+			else if (AngleToEnemy < 0 && !ClosestTargetToTheLeft)
+			{
+				ClosestTargetToTheLeft = Enemy;
+			}
+		}
+	}
+
+	return ClosestTargetToTheLeft;
+}
+
+AEnemyCharacter* AHero::FindClosestEnemyToTheRightOfTarget()
+{
+	TArray<AActor*> EnemiesInRange;
+	EnemyDetectionSphere->GetOverlappingActors(EnemiesInRange, AEnemyCharacter::StaticClass());
+
+	AEnemyCharacter* ClosestTargetToTheRight = nullptr;
+	for (AActor* EnemyInRange : EnemiesInRange)
+	{
+		AEnemyCharacter* Enemy = Cast<AEnemyCharacter>(EnemyInRange);
+		if (Enemy && LockOnTarget && Enemy != LockOnTarget)
+		{
+			FVector ToLockOnTarget = GetVectorTo(LockOnTarget);
+			float AngleToEnemy = GetAngleTo(Enemy, ToLockOnTarget);
+			// Compare angles with the closest target right of the enemy
+			if (AngleToEnemy > 0 && ClosestTargetToTheRight)
+			{
+				float AngleToClosestRightTarget = GetAngleTo(ClosestTargetToTheRight, ToLockOnTarget);
+				if (AngleToEnemy < AngleToClosestRightTarget)
+				{
+					ClosestTargetToTheRight = Enemy;
+				}
+			}
+			else if (AngleToEnemy > 0 && !ClosestTargetToTheRight)
+			{
+				ClosestTargetToTheRight = Enemy;
+			}
+		}
+	}
+
+	return ClosestTargetToTheRight;
 }
 
 void AHero::TrackLockedOnEnemy()
 {
-	FVector ToMidPoint = GetVectorTo(ClosestEnemyInFront);
-	FVector LocationOfMidPoint = GetActorLocation() + ToMidPoint / 2;
-	FRotator ToEnemyRotation = UKismetMathLibrary::FindLookAtRotation(FollowCamera->GetComponentLocation(), LocationOfMidPoint);
+	if (LockOnTarget) 
+	{
+		FVector ToMidPoint = GetVectorTo(LockOnTarget);
+		FVector LocationOfMidPoint = GetActorLocation() + ToMidPoint / 2;
+		FRotator ToEnemyRotation = UKismetMathLibrary::FindLookAtRotation(FollowCamera->GetComponentLocation(), LocationOfMidPoint);
 
-	FollowCamera->SetWorldRotation(ToEnemyRotation);
-	Controller->SetControlRotation(ToEnemyRotation);
+		FollowCamera->SetWorldRotation(ToEnemyRotation);
+		Controller->SetControlRotation(ToEnemyRotation);
+	}
 }
 
 bool AHero::PlayerInView()
@@ -221,15 +326,17 @@ bool AHero::PlayerInView()
 
 void AHero::AdjustCameraBoomToSeePlayerAndEnemy(float DeltaTime)
 {
-	FVector ToMidPoint = GetVectorTo(ClosestEnemyInFront);
-	FVector LocationOfMidPoint = GetActorLocation() + ToMidPoint / 2;
-	FRotator ToEnemyRotation = UKismetMathLibrary::FindLookAtRotation(FollowCamera->GetComponentLocation(), LocationOfMidPoint);
+	if (LockOnTarget)
+	{
+		FVector ToMidPoint = GetVectorTo(LockOnTarget);
+		FVector LocationOfMidPoint = GetActorLocation() + ToMidPoint / 2;
+		FRotator ToEnemyRotation = UKismetMathLibrary::FindLookAtRotation(FollowCamera->GetComponentLocation(), LocationOfMidPoint);
 
-	FRotator CameraBoomTargetRotation =
-		UKismetMathLibrary::RLerp(CameraBoom->GetComponentRotation(), ToEnemyRotation, DeltaTime * 2, true);
+		FRotator CameraBoomTargetRotation =
+			UKismetMathLibrary::RLerp(CameraBoom->GetComponentRotation(), ToEnemyRotation, DeltaTime * 2, true);
 
-	CameraBoom->SetWorldRotation(CameraBoomTargetRotation);
-	UE_LOG(LogTemp, Warning, TEXT("Player in view: %s"), *CameraBoom->GetComponentRotation().ToString());
+		CameraBoom->SetWorldRotation(CameraBoomTargetRotation);
+	}
 }
 
 AEnemyCharacter* AHero::FindClosestEnemyInFront(TArray<AActor*>& Enemies)
@@ -276,19 +383,45 @@ AEnemyCharacter* AHero::FindClosestEnemyBetween(AEnemyCharacter* ClosestEnemy, A
 
 bool AHero::IsInFront(AEnemyCharacter* Enemy)
 {
-	FVector ToEnemy = GetVectorTo(Enemy);
-	ToEnemy.Normalize();
+	float AngleToEnemy = GetAngleTo(Enemy, GetActorForwardVector());
+	UE_LOG(LogTemp, Warning, TEXT("%f"), AngleToEnemy)
 
-	FVector ActorForward = GetActorForwardVector();
-	float AngleToEnemy = UKismetMathLibrary::DegAcos(FVector::DotProduct(ActorForward, ToEnemy));
-
-	return AngleToEnemy < 90.0f;
+	return AngleToEnemy < 90.0f && AngleToEnemy > -90.0f;
 }
 
 FVector AHero::GetVectorTo(AEnemyCharacter* Enemy)
 {
 	return Enemy->GetActorLocation() - GetActorLocation();
 }
+
+float AHero::GetAngleTo(AEnemyCharacter* Enemy, FVector ForwardDirection)
+{
+	float AngleToEnemy = 0.0f;
+	if (Enemy)
+	{
+		FVector UnitDirection = UKismetMathLibrary::GetDirectionUnitVector(GetActorLocation(), Enemy->GetActorLocation());
+		UnitDirection.Normalize(0.0001f);
+
+		FVector PlayerRightVector = ForwardDirection.ToOrientationQuat().GetRightVector();
+		PlayerRightVector.Normalize(0.0001f);
+
+		float DotProduct = FVector::DotProduct(UnitDirection, PlayerRightVector);
+
+
+		FVector ToEnemy = GetVectorTo(Enemy);
+		ToEnemy.Normalize();
+		ForwardDirection.Normalize();
+
+		AngleToEnemy = UKismetMathLibrary::DegAcos(FVector::DotProduct(ForwardDirection, ToEnemy));
+		if (DotProduct < 0)
+		{
+			AngleToEnemy *= -1;
+		}
+
+	}
+	return AngleToEnemy;
+}
+
 
 void AHero::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
