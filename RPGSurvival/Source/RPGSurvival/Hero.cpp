@@ -119,7 +119,7 @@ void AHero::Tick(float DeltaTime)
 
 	if (bIsLockedOntoEnemy)
 	{
-		TrackLockedOnEnemy();
+		TrackLockedOnEnemy(DeltaTime);
 		if (!PlayerInView())
 		{
 			AdjustCameraBoomToSeePlayerAndEnemy(DeltaTime);
@@ -285,16 +285,16 @@ AEnemyCharacter* AHero::FindClosestEnemyToTheRightOfTarget()
 	return ClosestTargetToTheRight;
 }
 
-void AHero::TrackLockedOnEnemy()
+void AHero::TrackLockedOnEnemy(float DeltaTime)
 {
 	if (LockOnTarget) 
 	{
 		FVector ToMidPoint = GetVectorTo(LockOnTarget);
 		FVector LocationOfMidPoint = GetActorLocation() + ToMidPoint / 2;
 		FRotator ToEnemyRotation = UKismetMathLibrary::FindLookAtRotation(FollowCamera->GetComponentLocation(), LocationOfMidPoint);
-
-		FollowCamera->SetWorldRotation(ToEnemyRotation);
-		Controller->SetControlRotation(ToEnemyRotation);
+		FRotator ToEnemyRotationLerpValue = UKismetMathLibrary::RLerp(FollowCamera->GetComponentRotation(), ToEnemyRotation, DeltaTime * 2, true);
+		FollowCamera->SetWorldRotation(ToEnemyRotationLerpValue);
+		Controller->SetControlRotation(ToEnemyRotationLerpValue);
 	}
 }
 

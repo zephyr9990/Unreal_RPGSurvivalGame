@@ -150,7 +150,7 @@ private:
 	bool IsInFront(AEnemyCharacter* Enemy);
 
 	/** Tracks the currently locked on enemy. */
-	void TrackLockedOnEnemy();
+	void TrackLockedOnEnemy(float DeltaTime);
 
 	/** Checks to see if the player is in view */
 	bool PlayerInView();
