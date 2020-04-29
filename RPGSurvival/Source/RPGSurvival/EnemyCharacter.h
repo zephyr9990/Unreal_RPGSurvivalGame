@@ -7,7 +7,7 @@
 #include "EnemyCharacter.generated.h"
 
 // Forward declaration
-class ULockOnWidgetComponent;
+class UWidgetComponent;
 
 UCLASS()
 class RPGSURVIVAL_API AEnemyCharacter : public ACharacter
@@ -20,7 +20,7 @@ public:
 
 	// The target widget component
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
-	ULockOnWidgetComponent* LockOnWidget;
+	UWidgetComponent* LockOnWidget;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -33,5 +33,10 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	/** Shows enemy information */
+	UFUNCTION(BlueprintImplementableEvent)
 	void ShowInformation(bool Show);
+
+	/** Show that this enemy is currently locked onto */
+	UFUNCTION(BlueprintImplementableEvent)
+	void ToggleLockOn();
 };

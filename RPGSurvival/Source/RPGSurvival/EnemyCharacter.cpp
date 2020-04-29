@@ -2,7 +2,6 @@
 
 
 #include "EnemyCharacter.h"
-#include "LockOnWidgetComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/CapsuleComponent.h"
 
@@ -13,8 +12,9 @@ AEnemyCharacter::AEnemyCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+
 	// Setup LockOnWidget defaults
-	LockOnWidget = CreateDefaultSubobject<ULockOnWidgetComponent>(FName("LockOnWidget"));
+	LockOnWidget = CreateDefaultSubobject<UWidgetComponent>(FName("LockOnWidget"));
 	LockOnWidget->SetupAttachment(GetCapsuleComponent());
 
 	FVector DefaultLockOnWidgetLocation = FVector(0.0f, 0.0f, 35.0f);
@@ -45,14 +45,4 @@ void AEnemyCharacter::Tick(float DeltaTime)
 void AEnemyCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
-
-void AEnemyCharacter::ShowInformation(bool Show)
-{
-	if (LockOnWidget)
-	{
-		LockOnWidget->ShowInformation(Show);
-	}
-}
-

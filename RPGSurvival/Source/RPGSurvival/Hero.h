@@ -59,6 +59,11 @@ protected:
 	void LookUpAtRate(float Rate);
 
 	/**
+	* Locks onto the enemy with it's lock-on UI enabled.
+	*/
+	void ToggleLockOn();
+
+	/**
 	* Detects overlap events
 	*/
 	UFUNCTION()
@@ -115,7 +120,22 @@ private:
 	*/
 	bool IsInFront(AEnemyCharacter* Enemy);
 
+	/** Tracks the currently locked on enemy. */
+	void TrackLockedOnEnemy();
+
+	/** Checks to see if the player is in view */
+	bool PlayerInView();
+
+	/** Adjusts the camera boom so that the player stays in view. */
+	void AdjustCameraBoomToSeePlayerAndEnemy(float DeltaTime);
+
 	// Used to see if the character is in battle.
 	bool bInBattle;
+
+	// Used to see if the character is locked onto an enemy.
+	bool bIsLockedOntoEnemy;
+
+	// Used to track which enemy is the closest and infront of the player
+	AEnemyCharacter* ClosestEnemyInFront;
 };
 
