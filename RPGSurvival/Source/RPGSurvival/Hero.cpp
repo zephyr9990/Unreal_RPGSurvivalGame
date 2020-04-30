@@ -287,7 +287,7 @@ void AHero::TrackLockedOnEnemy(float DeltaTime)
 	{
 		FVector ToMidPoint = GetVectorTo(LockOnTarget);
 		FVector LocationOfMidPoint = GetActorLocation() + ToMidPoint / 2;
-		FRotator ToEnemyRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), LocationOfMidPoint);
+		FRotator ToEnemyRotation = UKismetMathLibrary::FindLookAtRotation(FollowCamera->GetComponentLocation(), LocationOfMidPoint);
 		FRotator ToEnemyRotationLerpValue = UKismetMathLibrary::RLerp(FollowCamera->GetComponentRotation(), ToEnemyRotation, DeltaTime * 2, true);
 		FollowCamera->SetWorldRotation(ToEnemyRotationLerpValue);
 		Controller->SetControlRotation(ToEnemyRotationLerpValue);
