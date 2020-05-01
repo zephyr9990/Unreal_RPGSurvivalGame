@@ -95,9 +95,25 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void EnterCombatMode(bool bInCombat);
 
-	/** Sets whether or not the player can move */
 	UFUNCTION(BlueprintCallable)
+		/** Sets whether or not the player can move */
 		void EnableMovement(bool bCanMove);
+
+	UFUNCTION(BlueprintCallable)
+		/** Sets whether the attack is saved or not. 
+		* @param bool bIsSaved - To save the attack or not
+		*/
+		void SaveAttack(bool bIsSaved);
+
+	UFUNCTION(BlueprintCallable)
+		/** Gets whether the attack is saved or not. 
+		* @return True if the attack is saved, false if not.
+		*/
+		bool GetSaveAttack() const;
+
+	UFUNCTION(BlueprintCallable)
+		/** Resets the combo counter. */
+		void ResetCombo();
 
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -182,6 +198,12 @@ private:
 	// Used to see if the player can move.
 	bool bMovementEnabled;
 
+	// Used to see if the player can initiate the next attack or not.
+	bool bSaveAttack;
+
+	// Used to see which combo attack the player is currently on.
+	int32 ComboCounter;
+
 	// Used to track which enemy is the closest and infront of the player
 	AEnemyCharacter* ClosestEnemyInFront;
 
@@ -193,13 +215,7 @@ private:
 
 	// Montage animations
 	UPROPERTY(EditAnywhere, Category = "Animation")
-	UAnimMontage* Attack1Montage;
-
-	UPROPERTY(EditAnywhere, Category = "Animation")
-	UAnimMontage* Attack2Montage;
-
-	UPROPERTY(EditAnywhere, Category = "Animation")
-	UAnimMontage* Attack3Montage;
+	TArray<UAnimMontage*> ComboAttacks;
 
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	UAnimMontage* DodgeMontage;

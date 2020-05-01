@@ -65,6 +65,7 @@ AHero::AHero()
 	bIsInCombat = false;
 	bIsLockedOntoEnemy = false;
 	bMovementEnabled = true;
+	ComboCounter = 0;
 	ClosestEnemyInFront = nullptr;
 	LockOnTarget = nullptr;
 	AnimInstance = nullptr;
@@ -142,6 +143,21 @@ void AHero::EnableMovement(bool bCanMove)
 	bMovementEnabled = bCanMove;
 }
 
+void AHero::SaveAttack(bool bIsSaved)
+{
+	bSaveAttack = bIsSaved;
+}
+
+bool AHero::GetSaveAttack() const
+{
+	return bSaveAttack;
+}
+
+void AHero::ResetCombo()
+{
+	ComboCounter = 0;
+}
+
 void AHero::TurnAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
@@ -186,9 +202,13 @@ void AHero::MoveRight(float Value)
 void AHero::Attack()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Attack pressed!"));
-	if (bIsInCombat)
+	if (bIsInCombat && !bSaveAttack)
 	{
-		AnimInstance->Montage_Play(Attack1Montage);
+		if (ComboCounter < ComboAttacks.Num())
+		{
+			AnimInstance->Montage_Play(ComboAttacks[ComboCounter]);
+			bSaveAttack = true;
+		}
 	}
 }
 
