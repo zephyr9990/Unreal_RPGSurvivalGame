@@ -129,6 +129,9 @@ private:
 	/** Called every frame **/
 	virtual void Tick(float DeltaTime) override;
 
+	/** Rotates to face the enemy */
+	void FaceEnemy();
+
 	/** Finds the closest enemy infront of the player 
 	* @param Enemies - The array of enemies to iterate through
 	*/

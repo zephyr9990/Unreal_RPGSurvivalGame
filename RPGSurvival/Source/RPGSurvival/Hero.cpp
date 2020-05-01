@@ -156,6 +156,7 @@ bool AHero::GetSaveAttack() const
 void AHero::ResetCombo()
 {
 	ComboCounter = 0;
+	EnableMovement(true);
 }
 
 void AHero::TurnAtRate(float Rate)
@@ -206,8 +207,15 @@ void AHero::Attack()
 	{
 		if (ComboCounter < ComboAttacks.Num())
 		{
+			if (LockOnTarget || ClosestEnemyInFront)
+			{
+				FaceEnemy();
+			}
+
 			AnimInstance->Montage_Play(ComboAttacks[ComboCounter]);
-			bSaveAttack = true;
+			SaveAttack(true);
+			EnableMovement(false);
+			ComboCounter++;
 		}
 	}
 }
@@ -392,6 +400,28 @@ void AHero::SwitchTargetTo(AEnemyCharacter* NewTarget)
 	LockOnTarget = NewTarget;
 	LockOnTarget->ShowInformation(true);
 	LockOnTarget->ToggleLockOn();
+}
+
+void AHero::FaceEnemy()
+{
+	AEnemyCharacter* EnemyToFace = nullptr;
+	if (LockOnTarget)
+	{
+		EnemyToFace = LockOnTarget;
+	}
+	else if (ClosestEnemyInFront)
+	{
+		EnemyToFace = ClosestEnemyInFront;
+	}
+
+	if (!EnemyToFace || GetVectorTo(EnemyToFace).Size() > 400)
+	{
+		return; // no enemy to face or not close enough to enemy.
+	}
+
+	FVector EnemyLocation = EnemyToFace->GetActorLocation();
+	FRotator ToEnemyRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), EnemyLocation);
+	SetActorRotation(ToEnemyRotation);
 }
 
 AEnemyCharacter* AHero::FindClosestEnemyInFront(TArray<AActor*>& Enemies)
