@@ -2,8 +2,10 @@
 
 #include "Hero.h"
 #include "EnemyCharacter.h"
+#include "Animation/AnimInstance.h"
 #include "Engine/World.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/InputComponent.h"
@@ -65,6 +67,7 @@ AHero::AHero()
 	bMovementEnabled = true;
 	ClosestEnemyInFront = nullptr;
 	LockOnTarget = nullptr;
+	AnimInstance = nullptr;
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -73,6 +76,11 @@ void AHero::BeginPlay()
 {
 	Super::BeginPlay();
 
+	AnimInstance = GetMesh()->GetAnimInstance();
+	if (!AnimInstance)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No animation instance on: %s"), *GetName());
+	}	
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,6 +89,9 @@ void AHero::BeginPlay()
 void AHero::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
 	// Actions
+	PlayerInputComponent->BindAction("Attack", IE_Pressed, this, &AHero::Attack);
+	PlayerInputComponent->BindAction("Confirm", IE_Pressed, this, &AHero::Confirm);
+	PlayerInputComponent->BindAction("Dodge", IE_Pressed, this, &AHero::Dodge);
 	PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("LockOn", EInputEvent::IE_Pressed, this, &AHero::ToggleLockOn);
 	PlayerInputComponent->BindAction("TargetLeftEnemy", EInputEvent::IE_Pressed, this, &AHero::TargetLeftEnemy);
@@ -172,11 +183,31 @@ void AHero::MoveRight(float Value)
 	}
 }
 
+void AHero::Attack()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Attack pressed!"));
+	if (bIsInCombat)
+	{
+		AnimInstance->Montage_Play(Attack1Montage);
+	}
+}
+
+void AHero::Confirm()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Confirm pressed"));
+}
+
+void AHero::Dodge()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Dodge pressed"));
+}
+
 void AHero::ToggleLockOn()
 {
 	if (ClosestEnemyInFront && bIsInCombat)
 	{
 		LockOnTarget = ClosestEnemyInFront;
+		CameraBoom->SetWorldRotation(Controller->GetControlRotation());
 		CameraBoom->bUsePawnControlRotation = false;
 
 		bIsLockedOntoEnemy = !bIsLockedOntoEnemy;

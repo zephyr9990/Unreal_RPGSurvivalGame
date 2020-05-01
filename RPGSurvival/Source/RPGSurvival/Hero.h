@@ -58,32 +58,31 @@ protected:
 	 */
 	void LookUpAtRate(float Rate);
 
-	/**
-	* Locks onto the enemy with it's lock-on UI enabled.
-	*/
+	/** Called when the player presses the attack button. */
+	void Attack();
+
+	/** Called when player presses the confirm button */
+	void Confirm();
+
+	/** Called when player presses the dodge button */
+	void Dodge();
+
+	/** Locks onto the enemy with it's lock-on UI enabled. */
 	void ToggleLockOn();
 
-	/**
-	* Switches lock on target to the enemy left of the currently locked on target.
-	*/
+	/** Switches lock on target to the enemy left of the currently locked on target. */
 	void TargetLeftEnemy();
 
-	/**
-	* Switches lock on target to the enemy right of the currently locked on target.
-	*/
+	/** Switches lock on target to the enemy right of the currently locked on target. */
 	void TargetRightEnemy();
 
-	/**
-	* Detects overlap events
-	*/
 	UFUNCTION()
+		/** Detects overlap events */
 		void OnOverlapBegin(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 			int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	/**
-	* Detects end overlap events 
-	*/
 	UFUNCTION()
+		/** Detects end overlap events */
 		void OnOverlapEnd(UPrimitiveComponent* HitComp, AActor* OtherActor,
 			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 protected:
@@ -188,5 +187,21 @@ private:
 
 	// Used to track the lock on target.
 	AEnemyCharacter* LockOnTarget;
+
+	// The animation blueprint.
+	UAnimInstance* AnimInstance;
+
+	// Montage animations
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	UAnimMontage* Attack1Montage;
+
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	UAnimMontage* Attack2Montage;
+
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	UAnimMontage* Attack3Montage;
+
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	UAnimMontage* DodgeMontage;
 };
 
