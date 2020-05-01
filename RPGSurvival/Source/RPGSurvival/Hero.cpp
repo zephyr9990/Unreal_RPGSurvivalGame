@@ -285,12 +285,12 @@ void AHero::TrackLockedOnEnemy(float DeltaTime)
 {
 	if (LockOnTarget) 
 	{
-		FVector ToMidPoint = GetVectorTo(LockOnTarget);
-		FVector LocationOfMidPoint = GetActorLocation() + ToMidPoint / 2;
-		FRotator ToEnemyRotation = UKismetMathLibrary::FindLookAtRotation(FollowCamera->GetComponentLocation(), LocationOfMidPoint);
-		FRotator ToEnemyRotationLerpValue = UKismetMathLibrary::RLerp(FollowCamera->GetComponentRotation(), ToEnemyRotation, DeltaTime * 2, true);
-		FollowCamera->SetWorldRotation(ToEnemyRotationLerpValue);
-		Controller->SetControlRotation(ToEnemyRotationLerpValue);
+		FVector ToEnemy = GetVectorTo(LockOnTarget);
+		FVector LocationOfMidPoint = GetActorLocation() + ToEnemy / 2;
+		FRotator ToMidPointRotation = UKismetMathLibrary::FindLookAtRotation(FollowCamera->GetComponentLocation(), LocationOfMidPoint);
+		FRotator ToMidPointLerp = UKismetMathLibrary::RLerp(FollowCamera->GetComponentRotation(), ToMidPointRotation, DeltaTime * 2, true);
+		FollowCamera->SetWorldRotation(ToMidPointLerp);
+		Controller->SetControlRotation(ToMidPointLerp);
 	}
 }
 
@@ -326,10 +326,10 @@ void AHero::AdjustCameraBoomToSeePlayerAndEnemy(float DeltaTime)
 	{
 		FVector ToMidPoint = GetVectorTo(LockOnTarget);
 		FVector LocationOfMidPoint = GetActorLocation() + ToMidPoint / 2;
-		FRotator ToEnemyRotation = UKismetMathLibrary::FindLookAtRotation(FollowCamera->GetComponentLocation(), LocationOfMidPoint);
+		FRotator ToMidPointRotation = UKismetMathLibrary::FindLookAtRotation(CameraBoom->GetComponentLocation(), LocationOfMidPoint);
 
 		FRotator CameraBoomTargetRotation =
-			UKismetMathLibrary::RLerp(CameraBoom->GetComponentRotation(), ToEnemyRotation, DeltaTime * 2, true);
+			UKismetMathLibrary::RLerp(CameraBoom->GetComponentRotation(), ToMidPointRotation, DeltaTime * 2, true);
 
 		CameraBoom->SetWorldRotation(CameraBoomTargetRotation);
 	}
