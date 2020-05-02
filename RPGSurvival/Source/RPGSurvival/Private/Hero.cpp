@@ -1,6 +1,8 @@
 // Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
 
 #include "Hero.h"
+#include "CharacterDataComponent.h"
+#include "CharacterInfoDataAsset.h"
 #include "EnemyCharacter.h"
 #include "Animation/AnimInstance.h"
 #include "Engine/World.h"
@@ -61,6 +63,9 @@ AHero::AHero()
 	EnemyDetectionSphere->OnComponentBeginOverlap.AddDynamic(this, &AHero::OnOverlapBegin);
 	EnemyDetectionSphere->OnComponentEndOverlap.AddDynamic(this, &AHero::OnOverlapEnd);
 
+	// Create the player data component.
+	HeroData = CreateDefaultSubobject<UCharacterDataComponent>(TEXT("HeroData"));
+
 	// Initialize class variables
 	bIsInCombat = false;
 	bIsLockedOntoEnemy = false;
@@ -87,7 +92,14 @@ void AHero::BeginPlay()
 	if (!AnimInstance)
 	{
 		UE_LOG(LogTemp, Error, TEXT("No animation instance on: %s"), *GetName());
-	}	
+	}
+
+	if (!HeroDataAsset)
+	{
+		UE_LOG(LogTemp, Error, TEXT("No data asset on %s."), *GetName())
+	}
+
+	HeroData->SetData(HeroDataAsset);
 }
 
 //////////////////////////////////////////////////////////////////////////

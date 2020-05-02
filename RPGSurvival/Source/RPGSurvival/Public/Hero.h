@@ -9,6 +9,7 @@
 // Forward Declaration
 class USphereComponent;
 class UCharacterInfoDataAsset;
+class UCharacterDataComponent;
 class AEnemyCharacter;
 class APlayerController;
 
@@ -225,6 +226,10 @@ private:
 	// Used to tell the UI which button is pressed.
 	TMap<FString, int32> UIButtons;
 
+	// Keeps track of player stats.
+	UCharacterDataComponent* HeroData;
+
+	// Used to initialize hero data.
 	UPROPERTY(EditAnywhere, Category = "PlayerInfo")
 		UCharacterInfoDataAsset* HeroDataAsset;
 
