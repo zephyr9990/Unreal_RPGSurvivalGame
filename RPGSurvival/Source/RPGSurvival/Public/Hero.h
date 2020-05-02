@@ -8,6 +8,7 @@
 
 // Forward Declaration
 class USphereComponent;
+class UCharacterInfoDataAsset;
 class AEnemyCharacter;
 class APlayerController;
 
@@ -95,15 +96,19 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 	void EnterCombatMode(bool bInCombat);
 
+	/** Tells the UI to fire animations for a button press */
+	UFUNCTION(BlueprintImplementableEvent)
+		void UIButtonPressed(int32 ButtonPressed);
+
 	UFUNCTION(BlueprintCallable)
 		/** Sets whether or not the player can move */
-		void EnableMovement(bool bCanMove);
+	void EnableMovement(bool bCanMove);
 
 	UFUNCTION(BlueprintCallable)
 		/** Sets whether the attack is saved or not. 
 		* @param bool bIsSaved - To save the attack or not
 		*/
-		void SaveAttack(bool bIsSaved);
+	void SaveAttack(bool bIsSaved);
 
 	UFUNCTION(BlueprintCallable)
 		/** Gets whether the attack is saved or not. 
@@ -114,6 +119,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 		/** Resets the combo counter. */
 		void ResetCombo();
+
+	UFUNCTION(BlueprintCallable)
+		/** Stops the roll and allows for player input */
+		void StopRoll();
 
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -131,6 +140,9 @@ private:
 
 	/** Rotates to face the enemy */
 	void FaceEnemy();
+
+	/** Move incrementally towards the enemy */
+	void InchTowardsEnemy(AEnemyCharacter* Enemy, float DeltaTime);
 
 	/** Finds the closest enemy infront of the player 
 	* @param Enemies - The array of enemies to iterate through
@@ -204,8 +216,24 @@ private:
 	// Used to see if the player can initiate the next attack or not.
 	bool bSaveAttack;
 
+	// Used to see if the player has initiated a roll.
+	bool bIsRolling;
+
 	// Used to see which combo attack the player is currently on.
 	int32 ComboCounter;
+	
+	// Used to tell the UI which button is pressed.
+	TMap<FString, int32> UIButtons;
+
+	UPROPERTY(EditAnywhere, Category = "PlayerInfo")
+		UCharacterInfoDataAsset* HeroDataAsset;
+
+	// Used to see if the player is in striking distance.
+	UPROPERTY(EditAnywhere, Category = "Combat")
+		float StrikingDistance;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+		float DistancePlayerCanHitEnemy;
 
 	// Used to track which enemy is the closest and infront of the player
 	AEnemyCharacter* ClosestEnemyInFront;

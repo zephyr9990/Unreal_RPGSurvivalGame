@@ -66,10 +66,16 @@ AHero::AHero()
 	bIsLockedOntoEnemy = false;
 	bMovementEnabled = true;
 	ComboCounter = 0;
+	StrikingDistance = 500;
+	DistancePlayerCanHitEnemy = 100;
 	ClosestEnemyInFront = nullptr;
 	LockOnTarget = nullptr;
 	AnimInstance = nullptr;
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
+
+	UIButtons = TMap<FString, int32>();
+	UIButtons.Add("Attack", 0);
+	UIButtons.Add("Dodge", 1);
+	/// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
 
@@ -115,6 +121,8 @@ void AHero::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	AEnemyCharacter* Enemy = nullptr;
+	// If in combat, find the nearest enemy/
 	if (bIsInCombat && !bIsLockedOntoEnemy)
 	{
 		TArray<AActor*> Enemies;
@@ -123,18 +131,26 @@ void AHero::Tick(float DeltaTime)
 
 		if (ClosestEnemyInFront)
 		{
+			Enemy = ClosestEnemyInFront;
 			ClosestEnemyInFront->ShowInformation(true);
 		}
-
 	}
 
+	// If locked on, track the enemy with the camera.
 	if (bIsLockedOntoEnemy)
 	{
+		Enemy = LockOnTarget;
 		TrackLockedOnEnemy(DeltaTime);
 		if (!PlayerInView())
 		{
 			AdjustCameraBoomToSeePlayerAndEnemy(DeltaTime);
 		}
+	}
+
+	// If attacking, and enemy is within striking distance.
+	if (bSaveAttack && GetVectorTo(Enemy).Size() <= StrikingDistance)
+	{
+		InchTowardsEnemy(Enemy, DeltaTime);
 	}
 }
 
@@ -156,6 +172,12 @@ bool AHero::GetSaveAttack() const
 void AHero::ResetCombo()
 {
 	ComboCounter = 0;
+	EnableMovement(true);
+}
+
+void AHero::StopRoll()
+{
+	bIsRolling = false;
 	EnableMovement(true);
 }
 
@@ -203,6 +225,12 @@ void AHero::MoveRight(float Value)
 void AHero::Attack()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Attack pressed!"));
+	UIButtonPressed(UIButtons["Attack"]);
+	if (bIsRolling)
+	{
+		return; // cannot attack if rolling.
+	}
+
 	if (bIsInCombat && !bSaveAttack)
 	{
 		if (ComboCounter < ComboAttacks.Num())
@@ -228,6 +256,13 @@ void AHero::Confirm()
 void AHero::Dodge()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Dodge pressed"));
+	UIButtonPressed(UIButtons["Dodge"]);
+	if (!bIsRolling && !bSaveAttack)
+	{
+		AnimInstance->Montage_Play(DodgeMontage);
+		EnableMovement(false);
+		bIsRolling = true;
+	}
 }
 
 void AHero::ToggleLockOn()
@@ -414,14 +449,29 @@ void AHero::FaceEnemy()
 		EnemyToFace = ClosestEnemyInFront;
 	}
 
-	if (!EnemyToFace || GetVectorTo(EnemyToFace).Size() > 400)
+	if (!EnemyToFace || GetVectorTo(EnemyToFace).Size() > StrikingDistance)
 	{
 		return; // no enemy to face or not close enough to enemy.
 	}
 
 	FVector EnemyLocation = EnemyToFace->GetActorLocation();
 	FRotator ToEnemyRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), EnemyLocation);
+	ToEnemyRotation.Pitch = 0;
 	SetActorRotation(ToEnemyRotation);
+}
+
+void AHero::InchTowardsEnemy(AEnemyCharacter* Enemy, float DeltaTime)
+{
+	if (Enemy)
+	{
+		FVector ToEnemy = GetVectorTo(Enemy);
+		if (ToEnemy.Size() > DistancePlayerCanHitEnemy)
+		{
+			FVector ToStrikingDistance =
+				UKismetMathLibrary::VLerp(GetActorLocation(), GetActorLocation() + ToEnemy, DeltaTime * 3);
+			SetActorLocation(ToStrikingDistance);
+		}
+	}
 }
 
 AEnemyCharacter* AHero::FindClosestEnemyInFront(TArray<AActor*>& Enemies)
