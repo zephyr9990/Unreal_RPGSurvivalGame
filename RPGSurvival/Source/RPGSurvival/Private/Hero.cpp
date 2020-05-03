@@ -94,12 +94,14 @@ void AHero::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("No animation instance on: %s"), *GetName());
 	}
 
-	if (!HeroDataAsset)
+	if (HeroDataAsset)
+	{
+		HeroData->SetData(HeroDataAsset);
+	}
+	else
 	{
 		UE_LOG(LogTemp, Error, TEXT("No data asset on %s."), *GetName())
 	}
-
-	HeroData->SetData(HeroDataAsset);
 }
 
 //////////////////////////////////////////////////////////////////////////

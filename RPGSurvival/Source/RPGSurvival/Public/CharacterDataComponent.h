@@ -4,12 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "StatInfo.h"
 #include "CharacterDataComponent.generated.h"
 
 // Forward declaration.
 class UCharacterInfoDataAsset;
+class AHero;
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), BlueprintType)
 class RPGSURVIVAL_API UCharacterDataComponent : public UActorComponent
 {
 	GENERATED_BODY()
@@ -26,9 +28,13 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	// Sets the data for the character
-	void SetData(UCharacterInfoDataAsset* DataAsset);
+	/** Sets the data for the character */
+	void SetData(UCharacterInfoDataAsset* PlayerDataAsset);
 
 private:
-	UCharacterInfoDataAsset* PlayerStats;
+	// The owner of this component.
+	AHero* Owner;
+
+	// Keeps track of stat information.
+	FStatInfo PlayerStatInfo;
 };

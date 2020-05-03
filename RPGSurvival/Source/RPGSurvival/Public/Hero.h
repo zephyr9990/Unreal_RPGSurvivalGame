@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "StatInfo.h"
 #include "Hero.generated.h"
 
 // Forward Declaration
@@ -100,6 +101,10 @@ public:
 	/** Tells the UI to fire animations for a button press */
 	UFUNCTION(BlueprintImplementableEvent)
 		void UIButtonPressed(int32 ButtonPressed);
+
+	/** Tells the UI to change the player stat values. */
+	UFUNCTION(BlueprintImplementableEvent)
+		void UpdateStats(FStatInfo PlayerStats);
 
 	UFUNCTION(BlueprintCallable)
 		/** Sets whether or not the player can move */

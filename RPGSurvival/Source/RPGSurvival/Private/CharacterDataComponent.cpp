@@ -2,6 +2,12 @@
 
 
 #include "CharacterDataComponent.h"
+#include "Hero.h"
+#include "CharacterInfoDataAsset.h"
+#include "Components/WidgetComponent.h"
+#include "GameFramework/Character.h"
+#include "Kismet/KismetMathLibrary.h"
+
 
 // Sets default values for this component's properties
 UCharacterDataComponent::UCharacterDataComponent()
@@ -19,7 +25,8 @@ void UCharacterDataComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
+	// Tell the component who its owner is.
+	Owner = Cast<AHero>(GetOwner());
 }
 
 
@@ -31,7 +38,19 @@ void UCharacterDataComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	// ...
 }
 
-void UCharacterDataComponent::SetData(UCharacterInfoDataAsset* DataAsset)
+void UCharacterDataComponent::SetData(UCharacterInfoDataAsset* PlayerDataAsset)
 {
-	PlayerStats = DataAsset;
-}
+	PlayerStatInfo.Name = PlayerDataAsset->Name;
+
+	PlayerStatInfo.CurrentHP = PlayerDataAsset->StartingHealth;
+	PlayerStatInfo.MaxHP = PlayerDataAsset->StartingHealth;
+	PlayerStatInfo.HPPercent = 
+		UKismetMathLibrary::Conv_IntToFloat(PlayerStatInfo.CurrentHP)/ PlayerStatInfo.MaxHP;
+
+	PlayerStatInfo.MaxMP = PlayerDataAsset->StartingMP;
+	PlayerStatInfo.CurrentMP = PlayerDataAsset->StartingMP;
+	PlayerStatInfo.MPPercent =
+		UKismetMathLibrary::Conv_IntToFloat(PlayerStatInfo.CurrentMP) / PlayerStatInfo.MaxMP;
+
+	Owner->UpdateStats(PlayerStatInfo);
+}	
