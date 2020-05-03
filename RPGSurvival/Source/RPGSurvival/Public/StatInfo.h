@@ -13,6 +13,8 @@ struct RPGSURVIVAL_API FStatInfo
 {
 	GENERATED_USTRUCT_BODY()
 public:
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FString Name;
 
@@ -34,7 +36,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float MPPercent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float StaggerPercent;
+
 	FStatInfo();
-	FStatInfo(FString Name, int32 MaxHP, int32, int32 MaxMP);
 	~FStatInfo();
 };

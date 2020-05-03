@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "StatInfo.h"
+#include "CharacterUIInterface.h"
 #include "Hero.generated.h"
 
 // Forward Declaration
@@ -15,7 +16,7 @@ class AEnemyCharacter;
 class APlayerController;
 
 UCLASS(config=Game)
-class AHero : public ACharacter
+class AHero : public ACharacter, public ICharacterUIInterface
 {
 	GENERATED_BODY()
 
@@ -104,7 +105,7 @@ public:
 
 	/** Tells the UI to change the player stat values. */
 	UFUNCTION(BlueprintImplementableEvent)
-		void UpdateStats(FStatInfo PlayerStats);
+		void UpdateStats(FStatInfo StatInfo);
 
 	UFUNCTION(BlueprintCallable)
 		/** Sets whether or not the player can move */
@@ -235,7 +236,7 @@ private:
 	UCharacterDataComponent* HeroData;
 
 	// Used to initialize hero data.
-	UPROPERTY(EditAnywhere, Category = "PlayerInfo")
+	UPROPERTY(EditAnywhere, Category = "Stats")
 		UCharacterInfoDataAsset* HeroDataAsset;
 
 	// Used to see if the player is in striking distance.

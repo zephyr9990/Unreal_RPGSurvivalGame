@@ -3,12 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CharacterInfoDataAsset.h"
 #include "Components/ActorComponent.h"
 #include "StatInfo.h"
 #include "CharacterDataComponent.generated.h"
 
 // Forward declaration.
 class UCharacterInfoDataAsset;
+class ICharacterUIInterface;
 class AHero;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent), BlueprintType)
@@ -29,12 +31,12 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	/** Sets the data for the character */
-	void SetData(UCharacterInfoDataAsset* PlayerDataAsset);
+	void SetData(UCharacterInfoDataAsset* DataAsset);
 
 private:
 	// The owner of this component.
-	AHero* Owner;
+	ICharacterUIInterface* OwnerInterface;
 
 	// Keeps track of stat information.
-	FStatInfo PlayerStatInfo;
+	FStatInfo StatInfo;
 };

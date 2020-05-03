@@ -4,6 +4,7 @@
 #include "CharacterDataComponent.h"
 #include "Hero.h"
 #include "CharacterInfoDataAsset.h"
+#include "CharacterUIInterface.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/Character.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -26,7 +27,7 @@ void UCharacterDataComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// Tell the component who its owner is.
-	Owner = Cast<AHero>(GetOwner());
+	OwnerInterface = Cast<ICharacterUIInterface>(GetOwner());
 }
 
 
@@ -38,19 +39,19 @@ void UCharacterDataComponent::TickComponent(float DeltaTime, ELevelTick TickType
 	// ...
 }
 
-void UCharacterDataComponent::SetData(UCharacterInfoDataAsset* PlayerDataAsset)
+void UCharacterDataComponent::SetData(UCharacterInfoDataAsset* DataAsset)
 {
-	PlayerStatInfo.Name = PlayerDataAsset->Name;
+	StatInfo.Name = DataAsset->Name;
 
-	PlayerStatInfo.CurrentHP = PlayerDataAsset->StartingHealth;
-	PlayerStatInfo.MaxHP = PlayerDataAsset->StartingHealth;
-	PlayerStatInfo.HPPercent = 
-		UKismetMathLibrary::Conv_IntToFloat(PlayerStatInfo.CurrentHP)/ PlayerStatInfo.MaxHP;
+	StatInfo.CurrentHP = DataAsset->StartingHealth;
+	StatInfo.MaxHP = DataAsset->StartingHealth;
+	StatInfo.HPPercent = 
+		UKismetMathLibrary::Conv_IntToFloat(StatInfo.CurrentHP)/ StatInfo.MaxHP;
 
-	PlayerStatInfo.MaxMP = PlayerDataAsset->StartingMP;
-	PlayerStatInfo.CurrentMP = PlayerDataAsset->StartingMP;
-	PlayerStatInfo.MPPercent =
-		UKismetMathLibrary::Conv_IntToFloat(PlayerStatInfo.CurrentMP) / PlayerStatInfo.MaxMP;
+	StatInfo.MaxMP = DataAsset->StartingMP;
+	StatInfo.CurrentMP = DataAsset->StartingMP;
+	StatInfo.MPPercent =
+		UKismetMathLibrary::Conv_IntToFloat(StatInfo.CurrentMP) / StatInfo.MaxMP;
 
-	Owner->UpdateStats(PlayerStatInfo);
+	OwnerInterface->UpdateStats(StatInfo);
 }	

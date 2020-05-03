@@ -2,6 +2,7 @@
 
 
 #include "EnemyCharacter.h"
+#include "CharacterDataComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/CapsuleComponent.h"
 
@@ -12,15 +13,24 @@ AEnemyCharacter::AEnemyCharacter()
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-
 	// Setup LockOnWidget defaults
 	LockOnWidget = CreateDefaultSubobject<UWidgetComponent>(FName("LockOnWidget"));
-	LockOnWidget->SetupAttachment(GetCapsuleComponent());
-
+	LockOnWidget->SetupAttachment(RootComponent);
 	FVector DefaultLockOnWidgetLocation = FVector(0.0f, 0.0f, 35.0f);
 	LockOnWidget->SetRelativeLocation(DefaultLockOnWidgetLocation);
 	LockOnWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	LockOnWidget->SetVisibility(false);
+
+	// Create Stat Widget defaults
+	StatWidget = CreateDefaultSubobject<UWidgetComponent>(FName("StatWidget"));
+	StatWidget->SetupAttachment(RootComponent);
+	FVector DefaultStatWidgetLocation = FVector(0.0f, 0.0f, 97.0f);
+	StatWidget->SetRelativeLocation(DefaultStatWidgetLocation);
+	StatWidget->SetWidgetSpace(EWidgetSpace::Screen);
+	StatWidget->SetVisibility(false);
+
+	// Create Character Data Component
+	EnemyDataComponent = CreateDefaultSubobject<UCharacterDataComponent>(FName("EnemyDataComponent"));
 }
 
 // Called when the game starts or when spawned
@@ -31,6 +41,15 @@ void AEnemyCharacter::BeginPlay()
 	if (LockOnWidget->GetWidgetClass() == nullptr)
 	{ 
 		UE_LOG(LogTemp, Error, TEXT("No WidgetClass on %s"), *GetName());
+	}
+
+	if (EnemyDataAsset)
+	{
+		EnemyDataComponent->SetData(EnemyDataAsset);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("No data asset on: "), *GetName());
 	}
 }
 
