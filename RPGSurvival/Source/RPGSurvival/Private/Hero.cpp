@@ -102,6 +102,8 @@ void AHero::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("No data asset on %s."), *GetName())
 	}
+
+	DefaultCameraRotation = FollowCamera->GetRelativeRotation();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -281,6 +283,7 @@ void AHero::Dodge()
 
 void AHero::ToggleLockOn()
 {
+	// Turn on
 	if (ClosestEnemyInFront && bIsInCombat)
 	{
 		LockOnTarget = ClosestEnemyInFront;
@@ -291,12 +294,14 @@ void AHero::ToggleLockOn()
 		LockOnTarget->ToggleLockOn();
 	}
 
+	// Turn off
 	if (!bIsLockedOntoEnemy)
 	{
-		LockOnTarget = nullptr;
+		// TODO Check if needed.
+		//CameraBoom->SetWorldRotation(Controller->GetControlRotation());
 		CameraBoom->bUsePawnControlRotation = true;
-
-		FollowCamera->SetRelativeRotation(FQuat(FRotator::ZeroRotator));
+		ResetCamera(FollowCamera->RelativeRotation, DefaultCameraRotation);
+		LockOnTarget = nullptr;
 	}
 }
 

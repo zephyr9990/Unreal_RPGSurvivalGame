@@ -107,6 +107,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 		void UpdateStats(FStatInfo StatInfo);
 
+	UFUNCTION(BlueprintImplementableEvent)
+		void ResetCamera(FRotator CurrentCameraRotation, FRotator OriginalCameraRotation);
+
 	UFUNCTION(BlueprintCallable)
 		/** Sets whether or not the player can move */
 	void EnableMovement(bool bCanMove);
@@ -245,6 +248,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 		float DistancePlayerCanHitEnemy;
+
+	// Used to reset the camera after locking on.
+	FRotator DefaultCameraRotation;
 
 	// Used to track which enemy is the closest and infront of the player
 	AEnemyCharacter* ClosestEnemyInFront;
