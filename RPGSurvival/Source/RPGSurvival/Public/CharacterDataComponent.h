@@ -28,4 +28,7 @@ public:
 
 	// Sets the data for the character
 	void SetData(UCharacterInfoDataAsset* DataAsset);
+
+private:
+	UCharacterInfoDataAsset* PlayerStats;
 };
