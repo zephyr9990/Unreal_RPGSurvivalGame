@@ -20,7 +20,6 @@ void UCharacterDataComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-	
 }
 
 
@@ -34,5 +33,5 @@ void UCharacterDataComponent::TickComponent(float DeltaTime, ELevelTick TickType
 
 void UCharacterDataComponent::SetData(UCharacterInfoDataAsset* DataAsset)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Data asset received"))
+	PlayerStats = DataAsset;
 }
