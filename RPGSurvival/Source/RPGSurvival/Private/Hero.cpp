@@ -60,9 +60,6 @@ AHero::AHero()
 	EnemyDetectionSphere->SetRelativeLocation(DefaultDetectionSphereSize);
 	EnemyDetectionSphere->SetSphereRadius(DefaultDetectionSphereRadius);
 
-	EnemyDetectionSphere->OnComponentBeginOverlap.AddDynamic(this, &AHero::OnOverlapBegin);
-	EnemyDetectionSphere->OnComponentEndOverlap.AddDynamic(this, &AHero::OnOverlapEnd);
-
 	// Create the player data component.
 	HeroData = CreateDefaultSubobject<UCharacterDataComponent>(TEXT("HeroData"));
 
@@ -71,7 +68,7 @@ AHero::AHero()
 	bIsLockedOntoEnemy = false;
 	bMovementEnabled = true;
 	ComboCounter = 0;
-	StrikingDistance = 500;
+	LungingDistance = 500;
 	DistancePlayerCanHitEnemy = 100;
 	ClosestEnemyInFront = nullptr;
 	LockOnTarget = nullptr;
@@ -102,6 +99,9 @@ void AHero::BeginPlay()
 	{
 		UE_LOG(LogTemp, Error, TEXT("No data asset on %s."), *GetName())
 	}
+
+	EnemyDetectionSphere->OnComponentBeginOverlap.AddDynamic(this, &AHero::OnOverlapBegin);
+	EnemyDetectionSphere->OnComponentEndOverlap.AddDynamic(this, &AHero::OnOverlapEnd);
 
 	DefaultCameraRotation = FollowCamera->GetRelativeRotation();
 }
@@ -137,8 +137,7 @@ void AHero::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	AEnemyCharacter* Enemy = nullptr;
-	// If in combat, find the nearest enemy/
+	// If in combat, find the nearest enemy
 	if (bIsInCombat && !bIsLockedOntoEnemy)
 	{
 		TArray<AActor*> Enemies;
@@ -147,7 +146,6 @@ void AHero::Tick(float DeltaTime)
 
 		if (ClosestEnemyInFront)
 		{
-			Enemy = ClosestEnemyInFront;
 			ClosestEnemyInFront->ShowInformation(true);
 		}
 	}
@@ -155,18 +153,11 @@ void AHero::Tick(float DeltaTime)
 	// If locked on, track the enemy with the camera.
 	if (bIsLockedOntoEnemy)
 	{
-		Enemy = LockOnTarget;
 		TrackLockedOnEnemy(DeltaTime);
 		if (!PlayerInView())
 		{
 			AdjustCameraBoomToSeePlayerAndEnemy(DeltaTime);
 		}
-	}
-
-	// If attacking, and enemy is within striking distance.
-	if (bSaveAttack && GetVectorTo(Enemy).Size() <= StrikingDistance)
-	{
-		InchTowardsEnemy(Enemy, DeltaTime);
 	}
 }
 
@@ -247,13 +238,15 @@ void AHero::Attack()
 		return; // cannot attack if rolling.
 	}
 
-	if (bIsInCombat && !bSaveAttack)
+	bool bCurrentlyAttacking = bSaveAttack;
+	if (bIsInCombat && !bCurrentlyAttacking)
 	{
 		if (ComboCounter < ComboAttacks.Num())
 		{
 			if (LockOnTarget || ClosestEnemyInFront)
 			{
 				FaceEnemy();
+				InchTowardsEnemy();
 			}
 
 			AnimInstance->Montage_Play(ComboAttacks[ComboCounter]);
@@ -300,7 +293,7 @@ void AHero::ToggleLockOn()
 		// TODO Check if needed.
 		//CameraBoom->SetWorldRotation(Controller->GetControlRotation());
 		CameraBoom->bUsePawnControlRotation = true;
-		ResetCamera(FollowCamera->RelativeRotation, DefaultCameraRotation);
+		ResetCamera(FollowCamera->GetRelativeRotation(), DefaultCameraRotation);
 		LockOnTarget = nullptr;
 	}
 }
@@ -468,7 +461,7 @@ void AHero::FaceEnemy()
 		EnemyToFace = ClosestEnemyInFront;
 	}
 
-	if (!EnemyToFace || GetVectorTo(EnemyToFace).Size() > StrikingDistance)
+	if (!EnemyToFace || GetVectorTo(EnemyToFace).Size() > LungingDistance)
 	{
 		return; // no enemy to face or not close enough to enemy.
 	}
@@ -479,17 +472,25 @@ void AHero::FaceEnemy()
 	SetActorRotation(ToEnemyRotation);
 }
 
-void AHero::InchTowardsEnemy(AEnemyCharacter* Enemy, float DeltaTime)
+void AHero::InchTowardsEnemy()
 {
-	if (Enemy)
+	AEnemyCharacter* CurrentTarget = nullptr;
+	if (LockOnTarget)
 	{
-		FVector ToEnemy = GetVectorTo(Enemy);
-		if (ToEnemy.Size() > DistancePlayerCanHitEnemy)
-		{
-			FVector ToStrikingDistance =
-				UKismetMathLibrary::VLerp(GetActorLocation(), GetActorLocation() + ToEnemy, DeltaTime * 3);
-			SetActorLocation(ToStrikingDistance);
-		}
+		CurrentTarget = LockOnTarget;
+	}
+	else
+	{
+		CurrentTarget = ClosestEnemyInFront;
+	}
+
+	FVector ToCurrentTarget = GetVectorTo(CurrentTarget);
+	float DistanceToCurrentTarget = ToCurrentTarget.Size();
+
+	if (DistanceToCurrentTarget <= LungingDistance 
+		&& DistanceToCurrentTarget > DistancePlayerCanHitEnemy)
+	{
+		GetWithinStrikingDistance(GetActorLocation(), GetActorLocation() + ToCurrentTarget, DistancePlayerCanHitEnemy);
 	}
 }
 

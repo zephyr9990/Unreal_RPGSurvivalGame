@@ -14,7 +14,6 @@ struct RPGSURVIVAL_API FStatInfo
 	GENERATED_USTRUCT_BODY()
 public:
 
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FString Name;
 

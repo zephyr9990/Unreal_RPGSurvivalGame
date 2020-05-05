@@ -110,6 +110,9 @@ public:
 	UFUNCTION(BlueprintImplementableEvent)
 		void ResetCamera(FRotator CurrentCameraRotation, FRotator OriginalCameraRotation);
 
+	UFUNCTION(BlueprintImplementableEvent)
+		void GetWithinStrikingDistance(FVector ActorLocation, FVector DesiredLocation, float StrikingDistance);
+
 	UFUNCTION(BlueprintCallable)
 		/** Sets whether or not the player can move */
 	void EnableMovement(bool bCanMove);
@@ -152,7 +155,7 @@ private:
 	void FaceEnemy();
 
 	/** Move incrementally towards the enemy */
-	void InchTowardsEnemy(AEnemyCharacter* Enemy, float DeltaTime);
+	void InchTowardsEnemy();
 
 	/** Finds the closest enemy infront of the player 
 	* @param Enemies - The array of enemies to iterate through
@@ -242,9 +245,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Stats")
 		UCharacterInfoDataAsset* HeroDataAsset;
 
-	// Used to see if the player is in striking distance.
+	// Used to see if the player is in lunging distance.
 	UPROPERTY(EditAnywhere, Category = "Combat")
-		float StrikingDistance;
+		float LungingDistance;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 		float DistancePlayerCanHitEnemy;
